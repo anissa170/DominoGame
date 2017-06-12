@@ -4,24 +4,18 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.ScrollPane;
 import java.awt.Shape;
 import java.awt.Toolkit;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Path2D;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
-import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -29,11 +23,11 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import data.Player;
-import data.Stone;
 import control.DominoGame.ButtonListener;
 import control.DominoGame.MouseClickMotionListener;
 import control.DominoRules;
+import data.Player;
+import data.Stone;
 
 
 public class MainWindow
@@ -50,8 +44,8 @@ public class MainWindow
 	private JLabel lbl_player2Points = new JLabel("Joueur 2: 0");
 	private JLabel lbl_splash1 = new JLabel();
 	private JLabel lbl_splash2 = new JLabel();
-	private JButton btn_drawTalon = new JButton("Nouvelles pierre");
-	private PointsLabel lbl_points = new PointsLabel("Point(s) : 0");
+	private JButton btn_drawTalon = new JButton("Stein ziehen");
+	private PointsLabel lbl_points = new PointsLabel("Points: 0");
 	private DominoLabel targetLabel = null;
 	private ArrayList<DominoLabel> dLabels = new ArrayList<DominoLabel>();
 	private ArrayList<DominoLabel> handLabels = new ArrayList<DominoLabel>();
@@ -60,12 +54,11 @@ public class MainWindow
 	private JPanel handPane = new JPanel();
 	private JPanel contentPane;
 	
-
 	public void initializeWindow(Stone[] allStones,
 				MouseClickMotionListener mouseHandler, ButtonListener buttonListener)
 	{
 		this.mouseHandler = mouseHandler;
-		this.buttonListener = buttonListener;
+		this.setButtonListener(buttonListener);
 		frame = new JFrame("Domino");
 		contentPane = (JPanel) frame.getContentPane();
 
@@ -75,9 +68,9 @@ public class MainWindow
 				+ "Appuyez longtemps pour déplacer le champs de jeu");
 		JLabel lbl_help2 = new JLabel("Bouton gauche "
 				+ "appuyez longtemps pour déplacer la pierre");
-
+		
 		contentPane.setLayout(null);
-		contentPane.setBounds(0, 0, 1600, 1000);
+		contentPane.setBounds(0, 0, 1600, 900);
 		contentPane.add(lbl_mouseX);
 		contentPane.add(lbl_mouseY);
 		contentPane.add(lbl_points);
@@ -118,12 +111,12 @@ public class MainWindow
 		
 		btn_drawTalon.setBounds((contentPane.getWidth()/2) - 77, scrollPane.getY() - 40, 155, 40);
 		btn_drawTalon.addActionListener(buttonListener);
-		
+
 		FlowLayout flow = new FlowLayout();
 		flow.setVgap(10);
 		flow.setHgap(15);
-		
-		handPane.setName("Anissa");
+
+		handPane.setName("Hand");
 		handPane.setBackground(new Color(140,100,40));
 		handPane.setBounds(0, 580, 1280, 120);
 		handPane.setLayout(flow);
@@ -142,11 +135,12 @@ public class MainWindow
 			
 		paintingComponent.setSize(new Dimension(graphicsPane.getWidth(), graphicsPane.getHeight()));
 			
+
 		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
 		Properties p = System.getProperties();
 		String os = p.getProperty("os.name");
 
-		textOut("Résolution d'écran : " + (int) screen.getWidth() + "x" + (int) screen.getHeight());
+		textOut("Résolution écran: " + (int) screen.getWidth() + "x" + (int) screen.getHeight());
 		int x = (screen.width / 2) - (contentPane.getWidth() / 2);
 		int y = (screen.height / 2) - (contentPane.getHeight() / 2);
 		textOut(os);
@@ -161,7 +155,6 @@ public class MainWindow
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);
 	}
-	
 
 	class PaintingComponent extends JComponent
 	{
@@ -169,6 +162,7 @@ public class MainWindow
 		private Object[] intersections;
 		private Object[] intersectionColors;
 		
+
 		protected void paintComponent(Graphics g)
 		{
 			super.paintComponent(g);	
@@ -260,30 +254,32 @@ public class MainWindow
 	{
 		int points = DominoRules.calculatePoints(lbl_points.getPoints()
 									, lbl_points.getDoublePoints(), firstStone);
-		lbl_points.setText("Punkte: " + points);
+		lbl_points.setText("Points: " + points);
 	}
-	
 
 	public void addDominoeToHand(Stone s, boolean firstMove)
 	{
 		boolean abort = false;
 		
+
 		for (DominoLabel h: handLabels)
 		{
 			if (h.getStone() == s)
 				abort = true;
 		}
 		
+
 		if (!abort)
 		{
 
 			if (s.isDoublestone() && firstMove)
 				s.rotateImage(90);
+			
 
 			handLabels.add(new DominoLabel(s));
 			DominoLabel d = handLabels.get(handLabels.size() -1);
 			
-			textOut("HandLabels Groesse: " + handLabels.size());
+			textOut("HandLabels: " + handLabels.size());
 				
 			d.addMouseListener(mouseHandler);
 			d.addMouseMotionListener(mouseHandler);
@@ -342,21 +338,20 @@ public class MainWindow
 			}
 			i++;
 		}
-		
+
 		if (!intersections.isEmpty())
 		{
 
 			paintingComponent.setIntersectionShapes(intersections.toArray(), 
 											intersectionColors.toArray());
-			
+
 			if (intersections.size() > 1)
 				return false;
-
+			
 			if (released == true)
 			{
 				if (intersectionColors.get(0))
 				{
-
 					if(!DominoRules.checkIfVertical(targetLabel))
 						return moveStoneHorizontal(draggedStone, targetLabel,
 								intersectionColors, edgePoints, doublePoints);
@@ -383,16 +378,16 @@ public class MainWindow
 		return targetLabel;
 	}
 	
+
 	private boolean moveStoneHorizontal(DominoLabel draggedStone, DominoLabel target, 
 			ArrayList<Boolean> intersectionColors, int[] edgePoints, boolean[] doublePoints)
 	{
 
 		boolean snapRight = DominoRules.snapRight(draggedStone, target);
 		boolean noNeighbours = DominoRules.checkNeighboursHorizontal(draggedStone, target, snapRight);
-
+		
 		if (intersectionColors.get(0) == true && draggedStone.isDraggable() && noNeighbours)
 		{
-
 			int tPosX = target.getLocation().x;
 			int tPosY = target.getLocation().y;
 			int draggedWidth = draggedStone.getWidth();
@@ -417,7 +412,7 @@ public class MainWindow
 				
 				target.getStone().setRightNeighbour(draggedStone.getStone());
 				draggedStone.getStone().setLeftNeighbour(target.getStone());
-
+				
 				DominoRules.calculatePointsRight(draggedStone, target, edgePoints, doublePoints);
 			}
 			else
@@ -457,9 +452,11 @@ public class MainWindow
 		}
 	}
 
+
 	private boolean moveStoneVertical(DominoLabel draggedStone, DominoLabel target, 
 			ArrayList<Boolean> intersectionColors, int[] edgePoints, boolean[] doublePoints)
 	{
+
 		
 		boolean snapTop = DominoRules.snapTop(draggedStone, target);
 		boolean noNeighbours = DominoRules.checkNeighboursVertical(draggedStone, target, snapTop);
@@ -539,33 +536,33 @@ public class MainWindow
 		}
 	}
 	
+
 	public void updatePanels()
 	{
 		contentPane.updateUI();
 		graphicsPane.updateUI();
 		handPane.updateUI();
 	}
-	
+
 	public Point getFrameCoordinates()
 	{
 		return frame.getLocationOnScreen();
 	}
-
 
 	public void dropFromHand(DominoLabel clickedStone, int offsetX,
 									int offsetY, int playedDominoes)
 	{
 		Stone s = clickedStone.getStone();
 		Player p = s.getPlayer();
-		textOut("Stein: " + s);
+		textOut("Pierre: " + s);
 		p.deleteStone(s);
-
+		
 		handPane.remove(clickedStone);
 		handLabels.remove(clickedStone);
-
+		
 		dLabels.add(clickedStone);
 		graphicsPane.add(clickedStone, 0);
-		
+
 		if (playedDominoes != 0)
 			clickedStone.setLocation(offsetX + clickedStone.getX(),
 						offsetY + 680 - clickedStone.getHeight());
@@ -583,12 +580,13 @@ public class MainWindow
 		updatePanels();
 	}
 	
+
 	public void clearHand()
 	{
-		handPane.removeAll();
+		handPane.removeAll();	
 		handLabels.clear();		
 		
-		updatePanels();
+		updatePanels();		
 	}
 
 
@@ -597,7 +595,6 @@ public class MainWindow
 		lbl_points.setPoints(edgePoints);
 		lbl_points.setDoublePoints(doublePoints);
 	}
-	
 
 	public void updateButton(boolean isActive, String text)
 	{
@@ -616,37 +613,41 @@ public class MainWindow
 		else
 			lbl_player2Points.setText("Joueur 2: " + player.getPoints());
 	}
-	
 
 	public void updatePlayerArrow(int playerIndex, int playedDominoes)
 	{
-		
+
 		ImageIcon arrow = null;
 		int x1 = lbl_player1Points.getLocation().x;
 		int y1 = lbl_player1Points.getLocation().y;
 		int x2 = lbl_player2Points.getLocation().x;
 		int y2 = lbl_player2Points.getLocation().y;
 		
+
 		try
 		{
 			arrow = new ImageIcon("ImageSrc/Arrow.png");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 
 		if (playerIndex == 0)
 		{
+
 			if (lbl_player1Points.getIcon() == null)
 			{
 
 				lbl_player1Points.setIcon(arrow);
 				lbl_player1Points.setLocation(x1 - 24, y1);
 				lbl_player2Points.setIcon(null);
+				
 
 				if (playedDominoes != 0)
 					lbl_player2Points.setLocation(x2 + 24, y2);
 			}
 		}
+
 		else
 		{
 			if (lbl_player2Points.getIcon() == null)
@@ -661,12 +662,12 @@ public class MainWindow
 		}
 	}
 	
+
 	public void resetWindow()
 	{
-
-		lbl_points.setText("Punkte: 0");
+		lbl_points.setText("Points: 0");
 		
-		btn_drawTalon.setText("Stein ziehen");
+		btn_drawTalon.setText("Nouvelle pierre");
 		lbl_player1Points.setBounds(contentPane.getWidth() - 93, 45, 105, 20);
 		lbl_player2Points.setBounds(contentPane.getWidth() - 93, 65, 105, 20);
 		lbl_player1Points.setIcon(null);
@@ -677,11 +678,12 @@ public class MainWindow
 		graphicsPane.removeAll();
 		graphicsPane.add(paintingComponent);
 		
-		updatePanels();		
+		updatePanels();	
 	}
-	
+
 	public void showStartSplash()
 	{
+
 		updateButton(false, "");
 		
 		int fontSize1 = 0;
@@ -689,24 +691,26 @@ public class MainWindow
 		lbl_splash1.setVisible(true);	
 		
 		
-		lbl_splash1.setText("Le jeu de Domino");
+		lbl_splash1.setText("Jouons au domino !");
 		
 		lbl_splash1.setFont(lbl_splash1.getFont().deriveFont((float)fontSize1));
 		
-	
+		
 		for (int i = 0; i <= 255; i++)
 		{
+			
 			lbl_splash1.setForeground(new Color(255 - i,(i/2),(i/4),i));
 				
 			if (i % 3 == 0 && fontSize1 < 100)
 				fontSize1++;
-
+			
 			lbl_splash1.setFont(lbl_splash1.getFont().deriveFont((float)fontSize1));
 			
-			delay(5);
+			delay(5);	
 		}
 		
 		delay(1500);	
+		
 		
 		for (int i = 255; i >= 0; i--)
 		{
@@ -720,10 +724,12 @@ public class MainWindow
 			
 			delay(1);	
 		}
+		
 		lbl_splash1.setVisible(false);
 		
 		delay(300);	
 	}
+	
 
 	public void showGameInfo(final String text1, final String text2, 
 			final float textSize, int delay, boolean fadeOut)
@@ -737,27 +743,22 @@ public class MainWindow
 			{
 				lbl_splash1.setFont(lbl_splash1.getFont().deriveFont(textSize));
 				lbl_splash2.setFont(lbl_splash2.getFont().deriveFont(textSize));
-		
 				lbl_splash1.setForeground(Color.BLACK);
 				lbl_splash2.setForeground(Color.BLACK);
-
 				lbl_splash1.setText(text1);
 				lbl_splash2.setText(text2);
-
 				lbl_splash1.setVisible(true);
 				lbl_splash2.setVisible(true);
 			}
 		}, delay);
 		
-	
 		if (fadeOut)
 		{
 			t.schedule(new TimerTask()
 			{
-		
+				@Override
 				public void run()
 				{
-			
 					lbl_splash1.setVisible(false);
 					lbl_splash2.setVisible(false);
 				}
@@ -774,5 +775,15 @@ public class MainWindow
 		{
 			e.printStackTrace();
 		}
+	}
+
+
+	public ButtonListener getButtonListener() {
+		return buttonListener;
+	}
+
+
+	public void setButtonListener(ButtonListener buttonListener) {
+		this.buttonListener = buttonListener;
 	}
 }
